@@ -79,6 +79,18 @@ body {
   padding-top: env(safe-area-inset-top, 0);
 }
 
+/* 允许 input/textarea 正常输入 */
+input, textarea, [contenteditable] {
+  user-select: text !important;
+  -webkit-user-select: text !important;
+}
+
+/* 数字键盘按钮确保可点击 */
+.add-key {
+  -webkit-touch-callout: none;
+  touch-action: manipulation;
+}
+
 #app {
   width: 100%;
   height: 100%;
@@ -1336,20 +1348,20 @@ body {
           <span class="pill-arrow">›</span>
         </div>
       </div>
-      <div class="add-keypad">
-        <button class="add-key" onclick="inputKey('1')">1</button>
-        <button class="add-key" onclick="inputKey('2')">2</button>
-        <button class="add-key" onclick="inputKey('3')">3</button>
-        <button class="add-key" onclick="inputKey('4')">4</button>
-        <button class="add-key" onclick="inputKey('5')">5</button>
-        <button class="add-key" onclick="inputKey('6')">6</button>
-        <button class="add-key" onclick="inputKey('7')">7</button>
-        <button class="add-key" onclick="inputKey('8')">8</button>
-        <button class="add-key" onclick="inputKey('9')">9</button>
-        <button class="add-key fn" onclick="inputKey('.')">.</button>
-        <button class="add-key" onclick="inputKey('0')">0</button>
-        <button class="add-key fn" onclick="inputKey('del')">⌫</button>
-        <button class="add-key confirm" onclick="saveTransaction()">✓ 确认</button>
+      <div class="add-keypad" id="add-keypad">
+        <button class="add-key" data-key="1">1</button>
+        <button class="add-key" data-key="2">2</button>
+        <button class="add-key" data-key="3">3</button>
+        <button class="add-key" data-key="4">4</button>
+        <button class="add-key" data-key="5">5</button>
+        <button class="add-key" data-key="6">6</button>
+        <button class="add-key" data-key="7">7</button>
+        <button class="add-key" data-key="8">8</button>
+        <button class="add-key" data-key="9">9</button>
+        <button class="add-key fn" data-key=".">.</button>
+        <button class="add-key" data-key="0">0</button>
+        <button class="add-key fn" data-key="del">⌫</button>
+        <button class="add-key confirm" data-key="confirm">✓ 确认</button>
       </div>
     </div>
   </div>
@@ -2672,6 +2684,37 @@ function init() {
   renderHome();
   updateStatusBarTime();
   setInterval(updateStatusBarTime, 60000);
+  setupKeypad();
+}
+
+// 数字键盘：用 touchend + click 双保险，兼容 iOS PWA
+function setupKeypad() {
+  const keypad = document.getElementById('add-keypad');
+  if (!keypad) return;
+  const keys = keypad.querySelectorAll('.add-key[data-key]');
+  keys.forEach(btn => {
+    let touched = false;
+    btn.addEventListener('touchend', (e) => {
+      e.preventDefault();
+      touched = true;
+      const key = btn.getAttribute('data-key');
+      handleKeyPress(key);
+      setTimeout(() => { touched = false; }, 300);
+    });
+    btn.addEventListener('click', (e) => {
+      if (touched) { e.preventDefault(); return; }
+      const key = btn.getAttribute('data-key');
+      handleKeyPress(key);
+    });
+  });
+}
+
+function handleKeyPress(key) {
+  if (key === 'confirm') {
+    saveTransaction();
+  } else {
+    inputKey(key);
+  }
 }
 
 // 点击空白关闭删除状态
