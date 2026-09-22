@@ -935,10 +935,13 @@ body {
   backdrop-filter: blur(20px);
   border-top: 1px solid var(--c-border);
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-around;
   flex-shrink: 0;
-  padding-bottom: env(safe-area-inset-bottom, 0);
+  padding-top: 10px;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  position: relative;
+  z-index: 100;
 }
 [data-theme="dark"] .tab-bar {
   background: rgba(26,26,46,0.95);
@@ -947,14 +950,15 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
+  gap: 3px;
   font-size: 10px;
   color: var(--c-text-muted);
   flex: 1;
   cursor: pointer;
   background: none;
   border: none;
-  padding: 4px 0;
+  padding-top: 4px;
+  padding-bottom: 8px;
 }
 .tab-item .tab-icon {
   font-size: 22px;
@@ -972,11 +976,13 @@ body {
   align-items: center;
   justify-content: center;
   font-size: 26px;
-  margin-top: -22px;
+  margin-top: -26px;
   box-shadow: 0 4px 16px rgba(26,26,46,0.3);
   border: 4px solid var(--c-surface);
   cursor: pointer;
   flex-shrink: 0;
+  position: relative;
+  z-index: 101;
 }
 .tab-add:active {
   transform: scale(0.92);

@@ -1,5 +1,5 @@
 // 简账 PWA Service Worker — 离线缓存 v2
-const CACHE_NAME = 'jianzhang-v2';
+const CACHE_NAME = 'jianzhang-v3';
 const ASSETS = [
   './',
   './index.html',
