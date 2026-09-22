@@ -1,5 +1,5 @@
-// 简账 PWA Service Worker — 离线缓存
-const CACHE_NAME = 'jianzhang-v1';
+// 简账 PWA Service Worker — 离线缓存 v2
+const CACHE_NAME = 'jianzhang-v2';
 const ASSETS = [
   './',
   './index.html',
@@ -19,7 +19,7 @@ self.addEventListener('install', (event) => {
   self.skipWaiting();
 });
 
-// 激活：清理旧缓存
+// 激活：清理所有旧缓存
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((names) => {
@@ -31,19 +31,39 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// 请求拦截：缓存优先，网络回退
+// 请求拦截：导航请求用网络优先（确保HTML最新），静态资源缓存优先
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
-  event.respondWith(
-    caches.match(event.request).then((cached) => {
-      if (cached) return cached;
-      return fetch(event.request).then((response) => {
-        if (response && response.status === 200 && response.type === 'basic') {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
-        }
+
+  const isNavigation = event.request.mode === 'navigate' ||
+    event.request.destination === 'document' ||
+    event.request.destination === 'manifest' ||
+    event.request.destination === 'script';
+
+  if (isNavigation) {
+    // 网络优先：确保 HTML 始终最新
+    event.respondWith(
+      fetch(event.request).then((response) => {
+        const clone = response.clone();
+        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
         return response;
-      }).catch(() => cached);
-    })
-  );
+      }).catch(() => {
+        return caches.match(event.request).then((cached) => cached || caches.match('./index.html'));
+      })
+    );
+  } else {
+    // 静态资源：缓存优先
+    event.respondWith(
+      caches.match(event.request).then((cached) => {
+        if (cached) return cached;
+        return fetch(event.request).then((response) => {
+          if (response && response.status === 200 && response.type === 'basic') {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+          }
+          return response;
+        }).catch(() => cached);
+      })
+    );
+  }
 });
